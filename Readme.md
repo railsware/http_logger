@@ -5,8 +5,8 @@ Simple gem that logs your HTTP api requests just like database queries
 
 ## Screenshot
 
-* [Hoptoad]()
-* [Google]()
+* [Hoptoad](https://github.com/railsware/http_logger/raw/master/screenshots/hoptoad.png)
+* [Google](https://github.com/railsware/http_logger/raw/master/screenshots/rails_console.png)
 
 ## Installation
 
