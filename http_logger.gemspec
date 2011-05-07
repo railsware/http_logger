@@ -13,8 +13,7 @@ Gem::Specification.new do |s|
   s.description = %q{This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file}
   s.email = %q{agresso@gmail.com}
   s.extra_rdoc_files = [
-    "LICENSE.txt",
-    "README.rdoc"
+    "LICENSE.txt"
   ]
   s.files = [
     ".document",
@@ -22,10 +21,10 @@ Gem::Specification.new do |s|
     "Gemfile",
     "Gemfile.lock",
     "LICENSE.txt",
-    "README.rdoc",
     "Rakefile",
     "Readme.md",
     "VERSION",
+    "http_logger.gemspec",
     "lib/http_logger.rb",
     "screenshots/hoptoad.png",
     "screenshots/rails_console.png",
