@@ -23,4 +23,4 @@ Simple gem that logs your HTTP api requests just like database queries
 ## Alternative
 
 Net::HTTP has a builtin logger that can be set via \#set\_debug\_output.
-This is only available at the instance control level which is not always accessible because it's wrapped by another class. Also it is not formed well for API debug purposes.
+This method is only available at the instance level and it is not always accessible if used inside of a library. Also output of builtin debugger is not formed well for API debug purposes.
