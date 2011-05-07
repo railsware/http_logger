@@ -24,3 +24,7 @@ Simple gem that logs your HTTP api requests just like database queries
 
 Net::HTTP has a builtin logger that can be set via \#set\_debug\_output.
 This method is only available at the instance level and it is not always accessible if used inside of a library. Also output of builtin debugger is not formed well for API debug purposes.
+
+## Integration
+
+If you are using Net::HTTP#request hackers like FakeWeb make sure you require http\_logger after all others because http\_logger always calls "super", rather than others.

@@ -32,7 +32,7 @@ class Net::HTTP
     response = request_without_logging(request, body, &block)
     response
   ensure
-    if self.started? && self.logger
+    if self.require_logging?(request)
       url = "http#{"s" if self.use_ssl?}://#{self.address}:#{self.port}#{request.path}"
       ofset = Time.now - time
       log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), url)
@@ -44,6 +44,18 @@ class Net::HTTP
       end
     end
   end
+
+  def require_logging?(request)
+    fakeweb = if defined?(::FakeWeb)
+                uri = FakeWeb::Utility.request_uri_as_string(self, request)
+                method = request.method.downcase.to_sym
+                FakeWeb.registered_uri?(method, uri)
+              else
+                false
+              end
+    self.logger && (self.started? || fakeweb)
+  end
+
 
   protected
   def log(message, dump)
