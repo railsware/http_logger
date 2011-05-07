@@ -18,7 +18,7 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/bogdan/http_logger"
   gem.license = "MIT"
   gem.summary = %Q{Log your http api calls just like SQL queries}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.description = %Q{This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file}
   gem.email = "agresso@gmail.com"
   gem.authors = ["Bogdan Gusiev"]
   # dependencies defined in Gemfile
