@@ -37,6 +37,7 @@ class Net::HTTP
       ofset = Time.now - time
       log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), url)
       log("POST params", request.body) if request.is_a?(::Net::HTTP::Post)
+      log("PUT body", request.body) if request.is_a?(::Net::HTTP::Put)
       if defined?(response) && response
         log("Response status", "#{response.class} (#{response.code})") 
         body = response.body
