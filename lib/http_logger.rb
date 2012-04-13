@@ -53,9 +53,9 @@ class Net::HTTP
 
   def require_logging?(request)
     fakeweb = if defined?(::FakeWeb)
-                uri = FakeWeb::Utility.request_uri_as_string(self, request)
+                uri = ::FakeWeb::Utility.request_uri_as_string(self, request)
                 method = request.method.downcase.to_sym
-                FakeWeb.registered_uri?(method, uri)
+                ::FakeWeb.registered_uri?(method, uri)
               else
                 false
               end
