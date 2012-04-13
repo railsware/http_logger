@@ -40,8 +40,9 @@ class Net::HTTP
       ofset = Time.now - time
       log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), url)
       request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") } if self.class.log_headers
-      log("POST params", request.body) if request.is_a?(::Net::HTTP::Post)
-      log("PUT body", request.body) if request.is_a?(::Net::HTTP::Put)
+      if request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put)
+        log("#{request.class.to_s.upcase} params", request.body)
+      end
       if defined?(response) && response
         log("Response status", "#{response.class} (#{response.code})") 
         response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") } if self.class.log_headers

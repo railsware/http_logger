@@ -43,6 +43,18 @@ describe "HttpLogger" do
       Net::HTTP.post_form(uri, {:a => 'hello', :b => 1})
     end
 
+    it {should include("POST params")}
     it {should include("a=hello&b=1")}
+  end
+  describe "put request" do
+    let(:request) do
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTP::Put.new(uri.path)
+      request.set_form_data(:a => 'hello', :b => 1)
+      http.request(request)
+    end
+
+    it {should include("a=hello&b=1")}
+    it {should include("PUT params")}
   end
 end
