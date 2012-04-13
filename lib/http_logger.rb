@@ -7,6 +7,7 @@ require 'net/http'
 # == Setup logger
 #
 #    Net::HTTP.logger = Logger.new('/tmp/all.log')
+#    Net::HTTP.log_headers = true
 #
 # == Do request
 #
@@ -18,10 +19,12 @@ require 'net/http'
 class Net::HTTP
 
   class << self
+    attr_accessor :log_headers
     attr_accessor :logger
     attr_accessor :colorize
   end
 
+  self.log_headers = false
   self.colorize = true
 
 
@@ -36,9 +39,12 @@ class Net::HTTP
       url = "http#{"s" if self.use_ssl?}://#{self.address}:#{self.port}#{request.path}"
       ofset = Time.now - time
       log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), url)
+      request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") } if self.class.log_headers
       log("POST params", request.body) if request.is_a?(::Net::HTTP::Post)
+      log("PUT body", request.body) if request.is_a?(::Net::HTTP::Put)
       if defined?(response) && response
         log("Response status", "#{response.class} (#{response.code})") 
+        response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") } if self.class.log_headers
         body = response.body
         log("Response body", body) unless body.is_a?(Net::ReadAdapter)
       end
