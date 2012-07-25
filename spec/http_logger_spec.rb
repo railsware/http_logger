@@ -11,7 +11,7 @@ describe "HttpLogger" do
   end
 
   let(:url) { "http://google.com/" }
-  let(:uri) { URI.parse("http://google.com/") }
+  let(:uri) { URI.parse(url) }
   let(:request) do
     Net::HTTP.get_response(uri)
   end
@@ -22,6 +22,14 @@ describe "HttpLogger" do
   end
 
   it { should_not be_empty }
+
+  context "when url has escaped chars" do
+
+    let(:url) { "http://google.com?query=a%20b"}
+
+    it { subject.should include("query=a b")}
+    
+  end
 
   context "when headers logging is on" do
 

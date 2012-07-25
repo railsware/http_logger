@@ -1,4 +1,5 @@
 require 'net/http'
+require "uri"
 
 # Usage:
 #
@@ -38,7 +39,7 @@ class Net::HTTP
     if self.require_logging?(request)
       url = "http#{"s" if self.use_ssl?}://#{self.address}:#{self.port}#{request.path}"
       ofset = Time.now - time
-      log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), url)
+      log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), URI.decode(url))
       request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") } if self.class.log_headers
       if request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put)
         log("#{request.class.to_s.upcase} params", request.body)
