@@ -89,15 +89,14 @@ end
 
 
 if defined?(Rails)
-  if Rails.respond_to? :configuration
+  if Rails.respond_to? :configuration && !Rails.configuration.nil?
     # Rails2
     Rails.configuration.after_initialize do
       Net::HTTP.logger = Rails.logger
     end
-  elsif Rails.respond_to?(:application) &&
-        Rails.application.respond_to?(:config)
+  elsif defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
     # Rails3
-    Rails.application.config.after_initialize do
+    ActiveSupport.on_load(:after_initialize) do
       Net::HTTP.logger = Rails.logger
     end
   end
