@@ -45,7 +45,7 @@ class Net::HTTP
         log("#{request.class.to_s.upcase} params", request.body)
       end
       if defined?(response) && response
-        log("Response status", "#{response.class} (#{response.code})") 
+        log("Response status", "#{response.class} (#{response.code})")
         response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") } if self.class.log_headers
         body = response.body
         log("Response body", body) unless body.is_a?(Net::ReadAdapter)
@@ -89,8 +89,17 @@ end
 
 
 if defined?(Rails)
-  Rails.configuration.after_initialize do
-    Net::HTTP.logger = Rails.logger
+
+  if !Rails.application.nil? && !Rails.application.config.nil?
+    # Rails2
+    Rails.configuration.after_initialize do
+      Net::HTTP.logger = Rails.logger
+    end
+  elsif defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
+    # Rails3
+    ActiveSupport.on_load(:after_initialize) do
+      Net::HTTP.logger = Rails.logger
+    end
   end
 end
 
