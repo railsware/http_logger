@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "http_logger"
-  s.version = "0.2.3"
+  s.version = "0.2.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bogdan Gusiev"]
-  s.date = "2012-09-14"
+  s.date = "2012-12-27"
   s.description = "This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file"
   s.email = "agresso@gmail.com"
   s.extra_rdoc_files = [
