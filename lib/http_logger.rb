@@ -90,7 +90,7 @@ end
 
 if defined?(Rails)
 
-  if !Rails.application.nil? && !Rails.application.config.nil?
+  if !Rails.respond_to?(:application) || (Rails.application && Rails.application.config)
     # Rails2
     Rails.configuration.after_initialize do
       Net::HTTP.logger = Rails.logger
