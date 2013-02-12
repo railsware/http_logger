@@ -7,8 +7,8 @@ require "uri"
 #
 # == Setup logger
 #
-#    Net::HTTP.logger = Logger.new('/tmp/all.log')
-#    Net::HTTP.log_headers = true
+#    HttpLogger.logger = Logger.new('/tmp/all.log')
+#    HttpLogger.log_headers = true
 #
 # == Do request
 #
@@ -16,10 +16,13 @@ require "uri"
 #       http.request(req)
 #     }
 #     ...
-
-class Net::HTTP
-
+#
+# == View the log
+#
+#     cat /tmp/all.log
+class HttpLogger
   class << self
+    attr_accessor :collapse_body_limit
     attr_accessor :log_headers
     attr_accessor :logger
     attr_accessor :colorize
@@ -27,17 +30,26 @@ class Net::HTTP
 
   self.log_headers = false
   self.colorize = true
+  self.collapse_body_limit = 5000
 
+  def self.perform(*args, &block)
+    instance.perform(*args, &block)
+  end
 
-  alias_method :request_without_logging,  :request
+  def self.instance
+    @instance ||= HttpLogger.new
+  end
 
-  def request(request, body = nil, &block)
+  def self.deprecate_config(option)
+    warn "Net::HTTP.#{option} is deprecated. Use HttpLogger.#{option} instead."
+  end
+
+  def perform(http, request, request_body)
     time = Time.now
-    response = request_without_logging(request, body, &block)
-    response
+    response = yield
   ensure
-    if self.require_logging?(request)
-      url = "http#{"s" if self.use_ssl?}://#{self.address}:#{self.port}#{request.path}"
+    if self.require_logging?(http, request)
+      url = "http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}"
       ofset = Time.now - time
       log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), URI.decode(url))
       request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") } if self.class.log_headers
@@ -48,24 +60,31 @@ class Net::HTTP
         log("Response status", "#{response.class} (#{response.code})")
         response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") } if self.class.log_headers
         body = response.body
-        log("Response body", body) unless body.is_a?(Net::ReadAdapter)
+        unless body.is_a?(Net::ReadAdapter)
+          if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
+            body = body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
+          end
+          log("Response body", body)
+        else
+          log("response body", "<impossible to log>")
+        end
       end
     end
   end
 
-  def require_logging?(request)
+  protected
+  def require_logging?(http, request)
     fakeweb = if defined?(::FakeWeb)
-                uri = ::FakeWeb::Utility.request_uri_as_string(self, request)
+                uri = ::FakeWeb::Utility.request_uri_as_string(http, request)
                 method = request.method.downcase.to_sym
                 ::FakeWeb.registered_uri?(method, uri)
               else
                 false
               end
-    self.logger && (self.started? || fakeweb)
+    self.logger && (http.started? || fakeweb)
   end
 
 
-  protected
   def log(message, dump)
     self.logger.debug(format_log_entry(message, dump))
   end
@@ -85,20 +104,50 @@ class Net::HTTP
     self.class.logger
   end
 
+  def collapse_body_limit
+    self.class.collapse_body_limit
+  end
 end
 
+class Net::HTTP
+
+  def self.log_headers=(value)
+    HttpLogger.deprecate_config("log_headers")
+    HttpLogger.log_headers = value
+  end
+
+  def self.colorize=(value)
+    HttpLogger.deprecate_config("colorize")
+    HttpLogger.colorize = value
+  end
+
+  def self.logger=(value)
+    HttpLogger.deprecate_config("logger")
+    HttpLogger.logger = value
+  end
+
+
+  alias_method :request_without_logging,  :request
+
+  def request(request, body = nil, &block)
+    HttpLogger.perform(self, request, body) do
+      request_without_logging(request, body, &block) 
+    end
+  end
+
+end
 
 if defined?(Rails)
 
   if !Rails.respond_to?(:application) || (Rails.application && Rails.application.config)
     # Rails2
     Rails.configuration.after_initialize do
-      Net::HTTP.logger = Rails.logger
+      HttpLogger.logger = Rails.logger
     end
   elsif defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
     # Rails3
     ActiveSupport.on_load(:after_initialize) do
-      Net::HTTP.logger = Rails.logger
+      HttpLogger.logger = Rails.logger
     end
   end
 end

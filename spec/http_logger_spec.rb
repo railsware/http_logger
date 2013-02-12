@@ -1,8 +1,7 @@
 require 'spec_helper'
-require 'fakeweb'
 require "uri"
 
-describe "HttpLogger" do
+describe HttpLogger do
 
   before do
     # flush log
@@ -17,6 +16,7 @@ describe "HttpLogger" do
   end
 
   subject do
+    _context if defined?(_context)
     request
     File.read(LOGFILE)
   end
@@ -34,14 +34,14 @@ describe "HttpLogger" do
   context "when headers logging is on" do
 
     before(:each) do
-      Net::HTTP.log_headers = true
+      HttpLogger.log_headers = true
     end
 
     it { should include("HTTP response header") }
     it { should include("HTTP request header") }
 
     after(:each) do
-      Net::HTTP.log_headers = false
+      HttpLogger.log_headers = false
     end
     
   end
@@ -64,5 +64,20 @@ describe "HttpLogger" do
 
     it {should include("a=hello&b=1")}
     it {should include("PUT params")}
+  end
+
+  context "with long response body" do
+    let(:body) do
+ "12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n" * 50 +
+"12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n" * 50
+    end
+    let(:url) do
+      FakeWeb.register_uri(:get, "http://github.com", :body => body)
+      "http://github.com"
+    end
+    it { should include("12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n")}
+    it { should include("some data truncated") }
+    it { should include("12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n")}
+
   end
 end

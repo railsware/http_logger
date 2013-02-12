@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
+require 'fakeweb'
 require 'http_logger'
 require "logger"
 require "fileutils"
@@ -14,6 +15,6 @@ RSpec.configure do |config|
 
 
   FileUtils.rm_f(LOGFILE)
-  Net::HTTP.logger = Logger.new(LOGFILE)
+  HttpLogger.logger = Logger.new(LOGFILE)
   
 end
