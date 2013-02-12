@@ -67,16 +67,19 @@ describe HttpLogger do
   end
 
   context "with long response body" do
+
     let(:body) do
- "12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n" * 50 +
-"12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n" * 50
+      "12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n" * 50 +
+        "12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n" * 50
     end
+
     let(:url) do
       FakeWeb.register_uri(:get, "http://github.com", :body => body)
       "http://github.com"
     end
+
     it { should include("12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n")}
-    it { should include("some data truncated") }
+    it { should include("<some data truncated>") }
     it { should include("12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n")}
 
   end
