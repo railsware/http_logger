@@ -91,7 +91,7 @@ class HttpLogger
   end
 
   def log_response_body(body)
-    unless body.is_a?(Net::ReadAdapter)
+    if body && !body.is_a?(Net::ReadAdapter)
       if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
         body = body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
       end
