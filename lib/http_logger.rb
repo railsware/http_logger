@@ -45,34 +45,62 @@ class HttpLogger
   end
 
   def perform(http, request, request_body)
-    time = Time.now
+    start_time = Time.now
     response = yield
   ensure
-    if self.require_logging?(http, request)
-      url = "http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}"
-      ofset = Time.now - time
-      log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), URI.decode(url))
-      request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") } if self.class.log_headers
-      if request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put)
-        log("#{request.class.to_s.upcase} params", request.body)
-      end
+    if require_logging?(http, request)
+      log_request_url(http, request, start_time)
+      log_post_put_params(request)
+      log_request_headers(request)
       if defined?(response) && response
-        log("Response status", "#{response.class} (#{response.code})")
-        response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") } if self.class.log_headers
-        body = response.body
-        unless body.is_a?(Net::ReadAdapter)
-          if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
-            body = body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
-          end
-          log("Response body", body)
-        else
-          log("response body", "<impossible to log>")
-        end
+        log_response_code(response)
+        log_response_headers(response)
+        log_response_body(response.body)
       end
     end
   end
 
   protected
+
+  def log_request_url(http, request, start_time)
+    url = "http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}"
+    ofset = Time.now - start_time
+    log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), URI.decode(url))
+  end
+
+  def log_request_headers(request)
+    if self.class.log_headers
+      request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") }
+    end
+  end
+
+  def log_post_put_params(request)
+    if request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put)
+      log("#{request.class.to_s.upcase} params", request.body)
+    end
+  end
+
+  def log_response_code(response)
+    log("Response status", "#{response.class} (#{response.code})")
+  end
+
+  def log_response_headers(response)
+    if self.class.log_headers
+      response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") }
+    end
+  end
+
+  def log_response_body(body)
+    unless body.is_a?(Net::ReadAdapter)
+      if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
+        body = body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
+      end
+      log("Response body", body)
+    else
+      log("Response body", "<impossible to log>")
+    end
+  end
+
   def require_logging?(http, request)
     fakeweb = if defined?(::FakeWeb)
                 uri = ::FakeWeb::Utility.request_uri_as_string(http, request)
