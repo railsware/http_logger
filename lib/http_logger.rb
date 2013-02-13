@@ -77,7 +77,7 @@ class HttpLogger
   def log_post_put_params(request)
     body = request.body
     if body && !body.empty? && (request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put))
-      log("Request body", strip_body(body))
+      log("Request body", truncate_body(body))
     end
   end
 
@@ -96,7 +96,7 @@ class HttpLogger
       log("Response body", "<impossible to log>")
     else
       if body && !body.empty?
-        log("Response body", strip_body(body))
+        log("Response body", truncate_body(body))
       end
     end
   end
@@ -112,9 +112,12 @@ class HttpLogger
     self.logger && (http.started? || fakeweb)
   end
 
-  def strip_body(body)
+  def truncate_body(body)
     if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
-      body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
+      body_piece_size = collapse_body_limit / 2
+      body[0..body_piece_size] + 
+        "\n\n<some data truncated>\n\n" + 
+        body[(body.size - body_piece_size)..body.size]
     else
       body
     end
