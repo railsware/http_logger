@@ -75,8 +75,9 @@ class HttpLogger
   end
 
   def log_post_put_params(request)
-    if request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put)
-      log("#{request.class.to_s.upcase} params", request.body)
+    body = request.body
+    if body && !body.empty? && (request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put))
+      log("Request body", strip_body(body))
     end
   end
 
@@ -91,13 +92,12 @@ class HttpLogger
   end
 
   def log_response_body(body)
-    if body && !body.is_a?(Net::ReadAdapter)
-      if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
-        body = body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
-      end
-      log("Response body", body)
-    else
+    if body.is_a?(Net::ReadAdapter)
       log("Response body", "<impossible to log>")
+    else
+      if body && !body.empty?
+        log("Response body", strip_body(body))
+      end
     end
   end
 
@@ -110,6 +110,14 @@ class HttpLogger
                 false
               end
     self.logger && (http.started? || fakeweb)
+  end
+
+  def strip_body(body)
+    if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
+      body[0..1000] + "\n\n<some data truncated>\n\n" + body[(body.size - 1000)..body.size]
+    else
+      body
+    end
   end
 
 

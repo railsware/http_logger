@@ -15,6 +15,11 @@ describe HttpLogger do
     Net::HTTP.get_response(uri)
   end
 
+  let(:long_body) do
+    "12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n" * 50 +
+      "12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n" * 50
+  end
+
   subject do
     _context if defined?(_context)
     request
@@ -47,12 +52,23 @@ describe HttpLogger do
   end
 
   describe "post request" do
+    let(:body) {{:a => 'hello', :b => 1}}
     let(:request) do
-      Net::HTTP.post_form(uri, {:a => 'hello', :b => 1})
+      Net::HTTP.post_form(uri, body)
     end
 
-    it {should include("POST params")}
+    it {should include("Request body")}
     it {should include("a=hello&b=1")}
+    context "with too long body" do
+      let(:url) do
+        FakeWeb.register_uri(:post, "http://github.com", :body => long_body)
+        "http://github.com/"
+      end
+      it { should include("12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n")}
+      it { should include("<some data truncated>") }
+      it { should include("12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n")}
+    end
+
   end
   describe "put request" do
     let(:request) do
@@ -62,19 +78,15 @@ describe HttpLogger do
       http.request(request)
     end
 
+    it {should include("Request body")}
     it {should include("a=hello&b=1")}
-    it {should include("PUT params")}
   end
 
   context "with long response body" do
 
-    let(:body) do
-      "12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n" * 50 +
-        "12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n" * 50
-    end
 
     let(:url) do
-      FakeWeb.register_uri(:get, "http://github.com", :body => body)
+      FakeWeb.register_uri(:get, "http://github.com", :body => long_body)
       "http://github.com"
     end
 
