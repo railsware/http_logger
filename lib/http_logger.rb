@@ -50,7 +50,7 @@ class HttpLogger
   ensure
     if require_logging?(http, request)
       log_request_url(http, request, start_time)
-      log_post_put_params(request)
+      log_request_body(request)
       log_request_headers(request)
       if defined?(response) && response
         log_response_code(response)
@@ -74,10 +74,13 @@ class HttpLogger
     end
   end
 
-  def log_post_put_params(request)
-    body = request.body
-    if body && !body.empty? && (request.is_a?(::Net::HTTP::Post) || request.is_a?(::Net::HTTP::Put))
-      log("Request body", truncate_body(body))
+  HTTP_METHODS_WITH_BODY = %w(POST PUT)
+  
+  def log_request_body(request)
+    if HTTP_METHODS_WITH_BODY.include?(request.method)
+      if (body = request.body) && !body.empty?
+        log("Request body", truncate_body(body))
+      end
     end
   end
 

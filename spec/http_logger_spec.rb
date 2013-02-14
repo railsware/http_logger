@@ -81,6 +81,18 @@ describe HttpLogger do
     it {should include("Request body")}
     it {should include("a=hello&b=1")}
   end
+  
+  describe "generic request" do
+    let(:request) do
+      http = Net::HTTP.new(uri.host, uri.port)
+      request = Net::HTTPGenericRequest.new('PUT', true, true, uri.path)
+      request.body = "a=hello&b=1"
+      http.request(request)
+    end
+
+    it {should include("Request body")}
+    it {should include("a=hello&b=1")}
+  end
 
   context "with long response body" do
 
