@@ -113,7 +113,7 @@ class HttpLogger
   end
 
   def truncate_body(body)
-    if collapse_body_limit && collapse_body_limit > 0 && body.size >= collapse_body_limit
+    if collapse_body_limit && collapse_body_limit > 0 && body && body.size >= collapse_body_limit
       body_piece_size = collapse_body_limit / 2
       body[0..body_piece_size] + 
         "\n\n<some data truncated>\n\n" + 
