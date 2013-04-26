@@ -96,7 +96,6 @@ describe HttpLogger do
 
   context "with long response body" do
 
-
     let(:url) do
       FakeWeb.register_uri(:get, "http://github.com", :body => long_body)
       "http://github.com"
@@ -106,5 +105,20 @@ describe HttpLogger do
     it { should include("<some data truncated>") }
     it { should include("12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n")}
 
+  end
+
+  context "ignore option is set" do
+
+    let(:url) { "http://rpm.newrelic.com/hello/world"}
+
+    before(:each) do
+      HttpLogger.ignore = [/rpm\.newrelic\.com/]
+    end
+
+    it { should be_empty}
+    
+    after(:each) do
+      HttpLogger.ignore = []
+    end
   end
 end

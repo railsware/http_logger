@@ -11,15 +11,20 @@ Simple gem that logs your HTTP api requests just like database queries
 
 ## Installation
 
-    gem install http_logger
+``` sh
+gem install http_logger
+```
 
 ## Usage
 
-    require 'http_logger'
+``` ruby
+require 'http_logger'
 
-    Net::HTTP.logger = Logger.new(...) # defaults to Rails.logger if Rails is defined
-    Net::HTTP.colorize = true # Default: true
-
+HttpLogger.logger = Logger.new(...) # defaults to Rails.logger if Rails is defined
+HttpLogger.colorize = true # Default: true
+HttpLogger.ignore = [/newrelic\.com/]
+HttpLogger.log_headers = false  # Default: false
+```
 
 ## Alternative
 

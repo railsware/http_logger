@@ -26,11 +26,13 @@ class HttpLogger
     attr_accessor :log_headers
     attr_accessor :logger
     attr_accessor :colorize
+    attr_accessor :ignore
   end
 
   self.log_headers = false
   self.colorize = true
   self.collapse_body_limit = 5000
+  self.ignore = []
 
   def self.perform(*args, &block)
     instance.perform(*args, &block)
@@ -63,9 +65,12 @@ class HttpLogger
   protected
 
   def log_request_url(http, request, start_time)
-    url = "http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}"
     ofset = Time.now - start_time
-    log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), URI.decode(url))
+    log("HTTP #{request.method} (%0.2fms)" % (ofset * 1000), request_url(http, request))
+  end
+
+  def request_url(http, request)
+    URI.decode("http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}")
   end
 
   def log_request_headers(request)
@@ -105,14 +110,21 @@ class HttpLogger
   end
 
   def require_logging?(http, request)
-    fakeweb = if defined?(::FakeWeb)
-                uri = ::FakeWeb::Utility.request_uri_as_string(http, request)
-                method = request.method.downcase.to_sym
-                ::FakeWeb.registered_uri?(method, uri)
-              else
-                false
-              end
-    self.logger && (http.started? || fakeweb)
+    self.logger && !ignored?(http, request) && (http.started? || fakeweb?(http, request))
+  end
+
+  def ignored?(http, request)
+    url = request_url(http, request)
+    self.class.ignore.any? do |pattern|
+      url =~ pattern
+    end
+  end
+
+  def fakeweb?(http, request)
+    return false unless defined?(::FakeWeb)
+    uri = ::FakeWeb::Utility.request_uri_as_string(http, request)
+    method = request.method.downcase.to_sym
+    ::FakeWeb.registered_uri?(method, uri)
   end
 
   def truncate_body(body)
