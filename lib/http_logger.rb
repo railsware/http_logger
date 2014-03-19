@@ -1,5 +1,6 @@
 require 'net/http'
-require "uri"
+require 'uri'
+require 'set'
 
 # Usage:
 #
@@ -79,7 +80,7 @@ class HttpLogger
     end
   end
 
-  HTTP_METHODS_WITH_BODY = %w(POST PUT)
+  HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET))
   
   def log_request_body(request)
     if HTTP_METHODS_WITH_BODY.include?(request.method)
