@@ -15,7 +15,7 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "http_logger"
-  gem.homepage = "http://github.com/bogdan/http_logger"
+  gem.homepage = "http://github.com/railsware/http_logger"
   gem.license = "MIT"
   gem.summary = %Q{Log your http api calls just like SQL queries}
   gem.description = %Q{This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file}
