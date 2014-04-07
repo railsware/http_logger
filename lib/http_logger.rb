@@ -25,12 +25,16 @@ class HttpLogger
   class << self
     attr_accessor :collapse_body_limit
     attr_accessor :log_headers
+    attr_accessor :log_request_body
+    attr_accessor :log_response_body
     attr_accessor :logger
     attr_accessor :colorize
     attr_accessor :ignore
   end
 
   self.log_headers = false
+  self.log_request_body = true
+  self.log_response_body = true
   self.colorize = true
   self.collapse_body_limit = 5000
   self.ignore = []
@@ -83,9 +87,11 @@ class HttpLogger
   HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET))
   
   def log_request_body(request)
-    if HTTP_METHODS_WITH_BODY.include?(request.method)
-      if (body = request.body) && !body.empty?
-        log("Request body", truncate_body(body))
+    if self.class.log_request_body
+      if HTTP_METHODS_WITH_BODY.include?(request.method)
+        if (body = request.body) && !body.empty?
+          log("Request body", truncate_body(body))
+        end
       end
     end
   end
@@ -101,11 +107,13 @@ class HttpLogger
   end
 
   def log_response_body(body)
-    if body.is_a?(Net::ReadAdapter)
-      log("Response body", "<impossible to log>")
-    else
-      if body && !body.empty?
-        log("Response body", truncate_body(body))
+    if self.class.log_response_body
+      if body.is_a?(Net::ReadAdapter)
+        log("Response body", "<impossible to log>")
+      else
+        if body && !body.empty?
+          log("Response body", truncate_body(body))
+        end
       end
     end
   end
@@ -206,5 +214,3 @@ if defined?(Rails)
     end
   end
 end
-
-

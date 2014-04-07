@@ -70,6 +70,7 @@ describe HttpLogger do
     end
 
   end
+
   describe "put request" do
     let(:request) do
       http = Net::HTTP.new(uri.host, uri.port)
@@ -94,6 +95,23 @@ describe HttpLogger do
     it {should include("a=hello&b=1")}
   end
 
+  context "when request body logging is off" do
+
+    before(:each) do
+      HttpLogger.log_request_body = false
+    end
+
+    let(:request) do
+      Net::HTTP.post_form(uri, {})
+    end
+
+    it { should_not include("Request body") }
+
+    after(:each) do
+      HttpLogger.log_request_body = true
+    end
+  end
+
   context "with long response body" do
 
     let(:url) do
@@ -105,6 +123,24 @@ describe HttpLogger do
     it { should include("<some data truncated>") }
     it { should include("12,Bonobos,bono@bos.com,tech@bonobos.com,double elimination\n")}
 
+  end
+
+  context "when response body logging is off" do
+
+    before(:each) do
+      HttpLogger.log_response_body = false
+    end
+
+    let(:url) do
+      FakeWeb.register_uri(:get, "http://github.com", :body => long_body)
+      "http://github.com"
+    end
+
+    it { should_not include("Response body") }
+
+    after(:each) do
+      HttpLogger.log_response_body = true
+    end
   end
 
   context "ignore option is set" do

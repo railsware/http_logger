@@ -24,6 +24,8 @@ HttpLogger.logger = Logger.new(...) # defaults to Rails.logger if Rails is defin
 HttpLogger.colorize = true # Default: true
 HttpLogger.ignore = [/newrelic\.com/]
 HttpLogger.log_headers = false  # Default: false
+HttpLogger.log_request_body  = false  # Default: true
+HttpLogger.log_response_body = false  # Default: true
 ```
 
 ## Alternative
