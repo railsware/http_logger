@@ -150,12 +150,7 @@ class HttpLogger
   end
 
   def log(message, dump)
-    case self.class.level
-    when :info
-      self.logger.info(format_log_entry(message, dump))
-    else
-      self.logger.debug(format_log_entry(message, dump))
-    end
+    self.logger.send(self.class.level, format_log_entry(message, dump))
   end
 
   def format_log_entry(message, dump = nil)
