@@ -30,6 +30,7 @@ class HttpLogger
     attr_accessor :logger
     attr_accessor :colorize
     attr_accessor :ignore
+    attr_accessor :level
   end
 
   self.log_headers = false
@@ -38,6 +39,7 @@ class HttpLogger
   self.colorize = true
   self.collapse_body_limit = 5000
   self.ignore = []
+  self.level = :debug
 
   def self.perform(*args, &block)
     instance.perform(*args, &block)
@@ -147,9 +149,8 @@ class HttpLogger
     end
   end
 
-
   def log(message, dump)
-    self.logger.debug(format_log_entry(message, dump))
+    self.logger.send(self.class.level, format_log_entry(message, dump))
   end
 
   def format_log_entry(message, dump = nil)

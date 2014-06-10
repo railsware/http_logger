@@ -157,4 +157,19 @@ describe HttpLogger do
       HttpLogger.ignore = []
     end
   end
+
+  context "when level is set" do
+
+    let(:url) { "http://rpm.newrelic.com/hello/world"}
+
+    before(:each) do
+      HttpLogger.level = :info
+    end
+
+    it { should_not be_empty }
+    
+    after(:each) do
+      HttpLogger.level = :debug
+    end
+  end
 end
