@@ -86,7 +86,7 @@ class HttpLogger
     end
   end
 
-  HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET))
+  HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET PATCH))
   
   def log_request_body(request)
     if self.class.log_request_body
