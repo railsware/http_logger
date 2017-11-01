@@ -33,7 +33,7 @@ class HttpLogger
     attr_accessor :level
   end
 
-  self.log_headers = false
+  self.log_headers = true
   self.log_request_body = true
   self.log_response_body = true
   self.colorize = true
