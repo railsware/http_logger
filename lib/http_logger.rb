@@ -77,7 +77,7 @@ class HttpLogger
   end
 
   def request_url(http, request)
-    URI.decode("http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}")
+    URI::DEFAULT_PARSER.unescape("http#{"s" if http.use_ssl?}://#{http.address}:#{http.port}#{request.path}")
   end
 
   def log_request_headers(request)
