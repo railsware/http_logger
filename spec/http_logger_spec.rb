@@ -7,7 +7,13 @@ describe HttpLogger do
     # flush log
     f = File.open(LOGFILE, "w")
     f.close
+    stub_request(:any, url).to_return(
+      body: response_body,
+      headers: {"X-Http-logger" => true},
+    )
   end
+
+  let(:response_body) { "Success" }
 
   let(:url) { "http://google.com/" }
   let(:uri) { URI.parse(url) }
@@ -33,7 +39,7 @@ describe HttpLogger do
     let(:url) { "http://google.com?query=a%20b"}
 
     it { subject.should include("query=a b")}
-    
+
   end
 
   context "when headers logging is on" do
@@ -48,7 +54,7 @@ describe HttpLogger do
     after(:each) do
       HttpLogger.log_headers = false
     end
-    
+
   end
 
   describe "post request" do
@@ -60,8 +66,8 @@ describe HttpLogger do
     it {should include("Request body")}
     it {should include("a=hello&b=1")}
     context "with too long body" do
+      let(:response_body) { long_body }
       let(:url) do
-        FakeWeb.register_uri(:post, "http://github.com", :body => long_body)
         "http://github.com/"
       end
       it { should include("12,Dodo case,dodo@case.com,tech@dodcase.com,single elimination\n")}
@@ -82,7 +88,7 @@ describe HttpLogger do
     it {should include("Request body")}
     it {should include("a=hello&b=1")}
   end
-  
+
   describe "generic request" do
     let(:request) do
       http = Net::HTTP.new(uri.host, uri.port)
@@ -114,8 +120,9 @@ describe HttpLogger do
 
   context "with long response body" do
 
+    let(:response_body) { long_body }
     let(:url) do
-      FakeWeb.register_uri(:get, "http://github.com", :body => long_body)
+      stub_request(:get, "http://github.com/").to_return(body: long_body)
       "http://github.com"
     end
 
@@ -131,8 +138,8 @@ describe HttpLogger do
       HttpLogger.log_response_body = false
     end
 
+    let(:response_body) { long_body }
     let(:url) do
-      FakeWeb.register_uri(:get, "http://github.com", :body => long_body)
       "http://github.com"
     end
 
@@ -145,14 +152,16 @@ describe HttpLogger do
 
   context "ignore option is set" do
 
-    let(:url) { "http://rpm.newrelic.com/hello/world"}
+    let(:url) do
+      "http://rpm.newrelic.com/hello/world"
+    end
 
     before(:each) do
       HttpLogger.ignore = [/rpm\.newrelic\.com/]
     end
 
     it { should be_empty}
-    
+
     after(:each) do
       HttpLogger.ignore = []
     end
@@ -160,14 +169,17 @@ describe HttpLogger do
 
   context "when level is set" do
 
-    let(:url) { "http://rpm.newrelic.com/hello/world"}
+    let(:url) do
+      stub_request(:get, "http://rpm.newrelic.com/hello/world").to_return(body: "")
+      "http://rpm.newrelic.com/hello/world"
+    end
 
     before(:each) do
       HttpLogger.level = :info
     end
 
     it { should_not be_empty }
-    
+
     after(:each) do
       HttpLogger.level = :debug
     end

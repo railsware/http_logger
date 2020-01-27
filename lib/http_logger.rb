@@ -87,7 +87,7 @@ class HttpLogger
   end
 
   HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET PATCH))
-  
+
   def log_request_body(request)
     if self.class.log_request_body
       if HTTP_METHODS_WITH_BODY.include?(request.method)
@@ -103,13 +103,13 @@ class HttpLogger
   end
 
   def log_response_headers(response)
-    if self.class.log_headers
+    if HttpLogger.log_headers
       response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") }
     end
   end
 
   def log_response_body(body)
-    if self.class.log_response_body
+    if HttpLogger.log_response_body
       if body.is_a?(Net::ReadAdapter)
         log("Response body", "<impossible to log>")
       else
@@ -126,23 +126,40 @@ class HttpLogger
 
   def ignored?(http, request)
     url = request_url(http, request)
-    self.class.ignore.any? do |pattern|
+    HttpLogger.ignore.any? do |pattern|
       url =~ pattern
     end
   end
 
   def fakeweb?(http, request)
-    return false unless defined?(::FakeWeb)
-    uri = ::FakeWeb::Utility.request_uri_as_string(http, request)
+    return false unless defined?(::WebMock)
+    uri = request_uri_as_string(http, request)
     method = request.method.downcase.to_sym
-    ::FakeWeb.registered_uri?(method, uri)
+    signature = WebMock::RequestSignature.new(method, uri)
+    ::WebMock.registered_request?(signature)
+  end
+
+  def request_uri_as_string(net_http, request)
+    protocol = net_http.use_ssl? ? "https" : "http"
+
+    path = request.path
+    path = URI.parse(request.path).request_uri if request.path =~ /^http/
+
+    if request["authorization"] =~ /^Basic /
+      userinfo = FakeWeb::Utility.decode_userinfo_from_header(request["authorization"])
+      userinfo = FakeWeb::Utility.encode_unsafe_chars_in_userinfo(userinfo) + "@"
+    else
+      userinfo = ""
+    end
+
+    "#{protocol}://#{userinfo}#{net_http.address}:#{net_http.port}#{path}"
   end
 
   def truncate_body(body)
     if collapse_body_limit && collapse_body_limit > 0 && body && body.size >= collapse_body_limit
       body_piece_size = collapse_body_limit / 2
-      body[0..body_piece_size] + 
-        "\n\n<some data truncated>\n\n" + 
+      body[0..body_piece_size] +
+        "\n\n<some data truncated>\n\n" +
         body[(body.size - body_piece_size)..body.size]
     else
       body
@@ -173,33 +190,18 @@ class HttpLogger
   end
 end
 
-class Net::HTTP
-
-  def self.log_headers=(value)
-    HttpLogger.deprecate_config("log_headers")
-    HttpLogger.log_headers = value
-  end
-
-  def self.colorize=(value)
-    HttpLogger.deprecate_config("colorize")
-    HttpLogger.colorize = value
-  end
-
-  def self.logger=(value)
-    HttpLogger.deprecate_config("logger")
-    HttpLogger.logger = value
-  end
-
-
-  alias_method :request_without_logging,  :request
-
+module NetHttpLogger
   def request(request, body = nil, &block)
     HttpLogger.perform(self, request, body) do
-      request_without_logging(request, body, &block) 
+      super(request, body, &block)
     end
   end
-
 end
+
+if defined?(::WebMock)
+  WebMock::HttpLibAdapters::NetHttpAdapter.instance_variable_get("@webMockNetHTTP").prepend(NetHttpLogger)
+end
+Net::HTTP.prepend(NetHttpLogger)
 
 if defined?(Rails)
 

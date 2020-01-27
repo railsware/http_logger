@@ -1,10 +1,9 @@
 source "http://rubygems.org"
 
-
 group :development do
-  gem "debugger", :platform => "ruby_19"
+  gem "byebug"
+  gem "webmock"
   gem "rspec"
   gem "bundler"
   gem "jeweler"
-  gem "fakeweb"
 end

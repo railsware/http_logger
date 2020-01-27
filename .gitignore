@@ -5,4 +5,5 @@ doc
 .bundle
 pkg
 http.log
+Gemfile.lock
 
