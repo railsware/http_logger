@@ -190,18 +190,18 @@ class HttpLogger
   end
 end
 
-module NetHttpLogger
-  def request(request, body = nil, &block)
-    HttpLogger.perform(self, request, body) do
-      super(request, body, &block)
-    end
-  end
-end
-
 if defined?(::WebMock)
   WebMock::HttpLibAdapters::NetHttpAdapter.instance_variable_get("@webMockNetHTTP").prepend(NetHttpLogger)
 end
-Net::HTTP.prepend(NetHttpLogger)
+
+Net::HTTP.class_eval do
+  alias request_without_net_http_logger request
+  def request(request, body = nil, &block)
+    HttpLogger.perform(self, request, body) do
+      request_without_net_http_logger(request, body, &block)
+    end
+  end
+end
 
 if defined?(Rails)
 
