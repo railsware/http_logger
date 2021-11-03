@@ -1,5 +1,6 @@
 require 'spec_helper'
 require "uri"
+require "base64"
 
 describe HttpLogger do
 
@@ -9,16 +10,18 @@ describe HttpLogger do
     f.close
     stub_request(:any, url).to_return(
       body: response_body,
-      headers: {"X-Http-logger" => true},
+      headers: {"X-Http-logger" => true, **response_headers},
     )
   end
 
   let(:response_body) { "Success" }
+  let(:response_headers) { {} }
+  let(:request_headers) { {} }
 
   let(:url) { "http://google.com/" }
   let(:uri) { URI.parse(url) }
   let(:request) do
-    Net::HTTP.get_response(uri)
+    Net::HTTP.get_response(uri, **request_headers)
   end
 
   let(:long_body) do
@@ -50,6 +53,15 @@ describe HttpLogger do
 
     it { should include("HTTP response header") }
     it { should include("HTTP request header") }
+
+
+    context "authorization header" do
+
+      let(:request_headers) do
+        {'Authorization' => "Basic #{Base64.encode64('hello:world')}".strip}
+      end
+      it { should include("Authorization: <filtered>") }
+    end
 
     after(:each) do
       HttpLogger.log_headers = false

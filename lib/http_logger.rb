@@ -22,6 +22,8 @@ require 'set'
 #
 #     cat /tmp/all.log
 class HttpLogger
+  AUTHORIZATION_HEADER = 'Authorization'
+
   class << self
     attr_accessor :collapse_body_limit
     attr_accessor :log_headers
@@ -82,8 +84,15 @@ class HttpLogger
 
   def log_request_headers(request)
     if self.class.log_headers
-      request.each_capitalized { |k,v| log("HTTP request header", "#{k}: #{v}") }
+      request.each_capitalized do |k,v|
+        log_header(:request, k, v)
+      end
     end
+  end
+
+  def log_header(type, name, value)
+    value = "<filtered>" if name == AUTHORIZATION_HEADER
+    log("HTTP #{type} header", "#{name}: #{value}")
   end
 
   HTTP_METHODS_WITH_BODY = Set.new(%w(POST PUT GET PATCH))
@@ -104,7 +113,9 @@ class HttpLogger
 
   def log_response_headers(response)
     if HttpLogger.log_headers
-      response.each_capitalized { |k,v| log("HTTP response header", "#{k}: #{v}") }
+      response.each_capitalized do |k,v|
+        log_header(:response, k, v)
+      end
     end
   end
 
@@ -121,7 +132,8 @@ class HttpLogger
   end
 
   def require_logging?(http, request)
-    self.logger && !ignored?(http, request) && (http.started? || fakeweb?(http, request))
+
+    self.logger && !ignored?(http, request) && (http.started? || webmock?(http, request))
   end
 
   def ignored?(http, request)
@@ -131,7 +143,7 @@ class HttpLogger
     end
   end
 
-  def fakeweb?(http, request)
+  def webmock?(http, request)
     return false unless defined?(::WebMock)
     uri = request_uri_as_string(http, request)
     method = request.method.downcase.to_sym
@@ -146,8 +158,8 @@ class HttpLogger
     path = URI.parse(request.path).request_uri if request.path =~ /^http/
 
     if request["authorization"] =~ /^Basic /
-      userinfo = FakeWeb::Utility.decode_userinfo_from_header(request["authorization"])
-      userinfo = FakeWeb::Utility.encode_unsafe_chars_in_userinfo(userinfo) + "@"
+      userinfo = WebMock::Utility.decode_userinfo_from_header(request["authorization"])
+      userinfo = WebMock::Utility.encode_unsafe_chars_in_userinfo(userinfo) + "@"
     else
       userinfo = ""
     end
@@ -190,27 +202,28 @@ class HttpLogger
   end
 end
 
-if defined?(::WebMock)
-  WebMock::HttpLibAdapters::NetHttpAdapter.instance_variable_get("@webMockNetHTTP").prepend(NetHttpLogger)
-end
-
-Net::HTTP.class_eval do
+block = lambda do |a|
+  # raise instance_methods.inspect
   alias request_without_net_http_logger request
   def request(request, body = nil, &block)
     HttpLogger.perform(self, request, body) do
       request_without_net_http_logger(request, body, &block)
     end
+
   end
 end
 
-if defined?(Rails)
+if defined?(::WebMock)
+  klass = WebMock::HttpLibAdapters::NetHttpAdapter.instance_variable_get("@webMockNetHTTP")
+  # raise klass.instance_methods.inspect
+  klass.class_eval(&block)
+end
 
-  if !Rails.respond_to?(:application) || (Rails.application && Rails.application.config)
-    # Rails2
-    Rails.configuration.after_initialize do
-      HttpLogger.logger = Rails.logger unless HttpLogger.logger
-    end
-  elsif defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
+
+Net::HTTP.class_eval(&block)
+
+if defined?(Rails)
+  if defined?(ActiveSupport) && ActiveSupport.respond_to?(:on_load)
     # Rails3
     ActiveSupport.on_load(:after_initialize) do
       HttpLogger.logger = Rails.logger unless HttpLogger.logger
