@@ -9,24 +9,13 @@ rescue Bundler::BundlerError => e
   $stderr.puts "Run `bundle install` to install missing gems"
   exit e.status_code
 end
-require 'rake'
 
-require 'jeweler'
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "http_logger"
-  gem.homepage = "http://github.com/railsware/http_logger"
-  gem.license = "MIT"
-  gem.summary = %Q{Log your http api calls just like SQL queries}
-  gem.description = %Q{This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file}
-  gem.email = "agresso@gmail.com"
-  gem.authors = ["Bogdan Gusiev"]
-  # dependencies defined in Gemfile
-end
-Jeweler::RubygemsDotOrgTasks.new
+require 'rake'
+require 'bundler/gem_tasks'
 
 require 'rspec/core'
 require 'rspec/core/rake_task'
+
 RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = FileList['spec/**/*_spec.rb']
 end
