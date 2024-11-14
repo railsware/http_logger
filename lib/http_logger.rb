@@ -29,6 +29,7 @@ class HttpLogger
     attr_accessor :log_headers
     attr_accessor :log_request_body
     attr_accessor :log_response_body
+    attr_accessor :filter_authorization
     attr_accessor :logger
     attr_accessor :colorize
     attr_accessor :ignore
@@ -38,6 +39,7 @@ class HttpLogger
   self.log_headers = false
   self.log_request_body = true
   self.log_response_body = true
+  self.filter_authorization = true
   self.colorize = true
   self.collapse_body_limit = 5000
   self.ignore = []
@@ -91,7 +93,11 @@ class HttpLogger
   end
 
   def log_header(type, name, value)
-    value = "<filtered>" if name == AUTHORIZATION_HEADER
+    if name == AUTHORIZATION_HEADER
+      if self.class.filter_authorization
+        value = "<filtered>"
+      end
+    end
     log("HTTP #{type} header", "#{name}: #{value}")
   end
 
