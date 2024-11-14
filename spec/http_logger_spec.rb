@@ -57,10 +57,23 @@ describe HttpLogger do
 
     context "authorization header" do
 
+      let(:bearer_token) { "Basic #{Base64.encode64('hello:world')}".strip }
       let(:request_headers) do
-        {'Authorization' => "Basic #{Base64.encode64('hello:world')}".strip}
+        {'Authorization' => bearer_token}
       end
-      it { should include("Authorization: <filtered>") }
+
+      context "filtered" do
+        it { should include("Authorization: <filtered>") }
+      end
+
+      context "not filtered" do
+
+        before(:each) do
+          HttpLogger.filter_authorization = false
+        end
+
+        it { should include("Authorization: #{bearer_token}") }
+      end
     end
 
     after(:each) do
