@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "Rakefile",
     "Readme.md",
-    "VERSION",
     "http_logger.gemspec",
     "lib/http_logger.rb",
     "screenshots/hoptoad.png",
