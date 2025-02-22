@@ -15,5 +15,5 @@ LOGFILE = 'http.log'
 RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = :should }
   FileUtils.rm_f(LOGFILE)
-  HttpLogger.logger = Logger.new(LOGFILE)
+  HttpLogger.configuration.logger = Logger.new(LOGFILE)
 end

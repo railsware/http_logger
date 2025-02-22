@@ -8,6 +8,7 @@ describe HttpLogger do
     # flush log
     f = File.open(LOGFILE, "w")
     f.close
+
     stub_request(:any, url).to_return(
       body: response_body,
       headers: {"X-Http-logger" => true, **response_headers},
@@ -48,7 +49,7 @@ describe HttpLogger do
   context "when headers logging is on" do
 
     before(:each) do
-      HttpLogger.log_headers = true
+      HttpLogger.configuration.log_headers = true
     end
 
     it { should include("HTTP response header") }
@@ -62,11 +63,6 @@ describe HttpLogger do
       end
       it { should include("Authorization: <filtered>") }
     end
-
-    after(:each) do
-      HttpLogger.log_headers = false
-    end
-
   end
 
   describe "post request" do
@@ -116,7 +112,7 @@ describe HttpLogger do
   context "when request body logging is off" do
 
     before(:each) do
-      HttpLogger.log_request_body = false
+      HttpLogger.configuration.log_request_body = false
     end
 
     let(:request) do
@@ -125,9 +121,6 @@ describe HttpLogger do
 
     it { should_not include("Request body") }
 
-    after(:each) do
-      HttpLogger.log_request_body = true
-    end
   end
 
   context "with long response body" do
@@ -147,7 +140,7 @@ describe HttpLogger do
   context "when response body logging is off" do
 
     before(:each) do
-      HttpLogger.log_response_body = false
+      HttpLogger.configuration.log_response_body = false
     end
 
     let(:response_body) { long_body }
@@ -156,10 +149,6 @@ describe HttpLogger do
     end
 
     it { should_not include("Response body") }
-
-    after(:each) do
-      HttpLogger.log_response_body = true
-    end
   end
 
   context "ignore option is set" do
@@ -169,14 +158,10 @@ describe HttpLogger do
     end
 
     before(:each) do
-      HttpLogger.ignore = [/rpm\.newrelic\.com/]
+      HttpLogger.configuration.ignore = [/rpm\.newrelic\.com/]
     end
 
     it { should be_empty}
-
-    after(:each) do
-      HttpLogger.ignore = []
-    end
   end
 
   context "when level is set" do
@@ -187,13 +172,13 @@ describe HttpLogger do
     end
 
     before(:each) do
-      HttpLogger.level = :info
+      HttpLogger.configuration.level = :info
     end
 
     it { should_not be_empty }
+  end
 
-    after(:each) do
-      HttpLogger.level = :debug
-    end
+  after(:each) do
+    HttpLogger.configuration.reset
   end
 end

@@ -20,14 +20,31 @@ gem install http_logger
 ``` ruby
 require 'http_logger'
 
-HttpLogger.logger = Logger.new(...) # defaults to Rails.logger if Rails is defined
-HttpLogger.colorize = true # Default: true
-HttpLogger.ignore = [/newrelic\.com/]
-HttpLogger.log_headers = false  # Default: false
-HttpLogger.log_request_body  = false  # Default: true
-HttpLogger.log_response_body = false  # Default: true
-HttpLogger.level = :info # Desired log level as a symbol. Default: :debug
-HttpLogger.collapse_body_limit # Change default truncate limit. Default: 5000
+HttpLogger.configure do |c|
+  # defaults to Rails.logger if Rails is defined
+  c.logger = Logger.new(LOGFILE)
+
+  # Default: true
+  c.colorize = true
+
+  # Ignore patterns (e.g., URLs to ignore)
+  c.ignore = [/newrelic\.com/]
+
+  # Default: false
+  c.log_headers = false
+
+  # Default: true
+  c.log_request_body = false
+
+  # Default: true
+  c.log_response_body = false
+
+  # Desired log level as a symbol. Default: :debug
+  c.level = :info
+
+  # Change default truncate limit. Default: 5000
+  c.collapse_body_limit = 5000
+end
 ```
 
 ## Alternative
