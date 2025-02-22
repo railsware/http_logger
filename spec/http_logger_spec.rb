@@ -178,6 +178,23 @@ describe HttpLogger do
     it { should_not be_empty }
   end
 
+  context "when binary response" do
+    let(:response_headers) do
+      {
+        'Content-Type' => 'image/webp'
+      }
+    end
+    let(:url) do
+      "http://example.com/image.webp"
+    end
+
+    let(:response_body) do
+      File.read("#{File.dirname(__FILE__)}/image.webp")
+    end
+
+    it { should include("<binary 41887 bytes>") }
+  end
+
   after(:each) do
     HttpLogger.configuration.reset
   end

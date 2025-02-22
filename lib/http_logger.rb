@@ -53,12 +53,20 @@ class HttpLogger
       if defined?(response) && response
         log_response_code(response)
         log_response_headers(response)
-        log_response_body(response.body)
+        log_response_body(response.body, binary_response?(response))
       end
     end
   end
 
   protected
+
+  def binary_response?(response)
+    content_type = response['Content-Type']
+    return false if content_type.nil?
+
+    !content_type.start_with?('text/', 'application/json', 'application/xml', 'application/javascript', 'application/x-www-form-urlencoded', 'application/xhtml+xml', 'application/rss+xml', 'application/atom+xml', 'application/svg+xml', 'application/yaml')
+
+  end
 
   def log_request_url(http, request, start_time)
     ofset = Time.now - start_time
@@ -106,13 +114,15 @@ class HttpLogger
     end
   end
 
-  def log_response_body(body)
+  def log_response_body(body, binary)
     if configuration.log_response_body
       if body.is_a?(Net::ReadAdapter)
         log("Response body", "<impossible to log>")
       else
         if body && !body.empty?
-          log("Response body", truncate_body(body))
+          log(
+            "Response body",
+            binary ? "<binary #{body.length} bytes>" : truncate_body(body),)
         end
       end
     end
