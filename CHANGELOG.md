@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.1]
+
+* Modernize gemspec
+
 ## [1.0.0]
 
 ### Added

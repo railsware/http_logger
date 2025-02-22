@@ -1,48 +1,31 @@
 # frozen_string_literal: true
-# encoding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "http_logger/version"
 
-Gem::Specification.new do |s|
-  s.name = "http_logger".freeze
-  s.version = HttpLogger::VERSION
+require_relative "lib/http_logger/version"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
-  s.require_paths = ["lib".freeze]
-  s.authors = ["Bogdan Gusiev".freeze]
-  s.date = "2020-01-27"
-  s.description = "This gem keep an eye on every Net::HTTP library usage and dump all request and response data to the log file".freeze
-  s.email = "agresso@gmail.com".freeze
-  s.extra_rdoc_files = [
-    "LICENSE.txt"
-  ]
-  s.files = [
-    ".document",
-    ".rspec",
-    "Gemfile",
-    "Gemfile.lock",
-    "LICENSE.txt",
-    "Rakefile",
-    "Readme.md",
-    "http_logger.gemspec",
-    "lib/http_logger.rb",
-    "screenshots/hoptoad.png",
-    "screenshots/rails_console.png",
-    "screenshots/solr.png",
-    "spec/http_logger_spec.rb",
-    "spec/spec_helper.rb"
-  ]
-  s.homepage = "http://github.com/railsware/http_logger".freeze
-  s.licenses = ["MIT".freeze]
-  s.rubygems_version = "2.7.8".freeze
-  s.summary = "Log your http api calls just like SQL queries".freeze
+Gem::Specification.new do |spec|
+  spec.name          = "http_logger"
+  spec.version       = HttpLogger::VERSION
+  spec.authors       = ["Bogdan Gusiev"]
+  spec.email         = ["agresso@gmail.com"]
 
-  s.add_development_dependency(%q<debug>.freeze, [">= 0"])
-  s.add_development_dependency(%q<webmock>.freeze, [">= 0"])
-  s.add_development_dependency(%q<rspec>.freeze, [">= 0"])
-  s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
-  s.add_development_dependency(%q<bump>.freeze, [">= 0"])
-  s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+  spec.summary       = "Log your http api calls just like SQL queries"
+  spec.description   = "This gem keeps an eye on every Net::HTTP library usage and dumps all request and response data to the log file."
+  spec.homepage      = "https://github.com/railsware/http_logger"
+  spec.license       = "MIT"
+  spec.required_ruby_version = ">= 2.5"
+
+  spec.metadata["source_code_uri"] = spec.homepage
+  spec.metadata["changelog_uri"] = "#{spec.homepage}/CHANGELOG.md"
+
+  spec.files         = Dir.glob("{lib,spec}/**/*") + ["LICENSE.txt", "README.md"]
+  spec.extra_rdoc_files = ["LICENSE.txt"]
+  spec.require_paths = ["lib"]
+
+  spec.add_development_dependency "bundler", ">= 2.0"
+  spec.add_development_dependency "rake", ">= 13.0"
+  spec.add_development_dependency "rspec", ">= 3.0"
+  spec.add_development_dependency "webmock", ">= 3.0"
+  spec.add_development_dependency "debug", ">= 1.0"
+  spec.add_development_dependency "bump", ">= 0.10"
 end
 
